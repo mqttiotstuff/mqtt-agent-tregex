@@ -1,5 +1,5 @@
 #
-# Mqttagent that play musicbox
+# Mqttagent that trigger some actions with specific actions on buttons
 #
 
 import paho.mqtt.client as mqtt
@@ -19,6 +19,7 @@ config = configparser.RawConfigParser()
 
 
 SMARTBUTTON = "home/agents/smartbuttons"
+
 ALERTE_TOPIC="home/agents/ledbox/alert"
 
 #############################################################
@@ -41,7 +42,7 @@ client2 = mqtt.Client()
 client2.username_pw_set(username, password)
 client2.connect(mqttbroker, 1883, 60)
 
-client = mqtt.Client();
+client = mqtt.Client()
 client.username_pw_set(username, password)
 
 BUTTON = "home/esp13/sensors/+"

@@ -2,18 +2,8 @@
 import json
 from functools import *
 
-a = [ (3,'a'),(1,'a'),(3,'a'),(1,'a'), (3,'a'),(1,'a') ] 
-
-# pattern
-b = [ ([0,0],'a'), ([1,2], 'a')]
-
-
-# a = [ (3,'a'), (5,'b'), (2,'c'), (2,'a'), (3,'a'), (2,'a') ]
-# 
-# # pattern
-# b = [ ([0,0],'a'), ([5,10], 'a'), ([0,3], 'a') ]
-# 
-
+# check if the given time is in the base time with interval, 
+# interval limits are included
 def isIn(basetime, interval, time):
     first = interval[0]
     second = interval[1]
@@ -32,18 +22,29 @@ class Recognition(object):
         self.pos = 0
         self.currentRecognizedTime = 0
         self.currentTime = 0
-        self.terminated = False
-        self.recognized = False
+
+        # handle the case with one event
+        self.terminated = len(p) == 1
+        self.recognized = len(p) == 1
 
     def consume(self, event):
         if self.terminated:
             return
-        (te,ne) = self.p[self.pos + 1] 
         (eventt,eventr) = event
-        # te is an interval
         self.currentTime += eventt
-        if ne == eventr and isIn(self.currentRecognizedTime, te, self.currentTime):
+
+        assert len(self.p) > 1
+
+        # next nt
+        (te,ne) = self.p[self.pos + 1] 
+
+        # te is an interval
+        if (ne == eventr or (ne[0] == '^' and ne[1:] != eventr)) and isIn(self.currentRecognizedTime, te, self.currentTime):
             # recognize the next event
+            self.pos += 1
+            self.currentRecognizedTime = self.currentTime
+        elif ne[0] == '^' and self.currentRecognizedTime + te[1] > self.currentTime :
+            # negative time has elapsed
             self.pos += 1
             self.currentRecognizedTime = self.currentTime
         else:
@@ -53,7 +54,7 @@ class Recognition(object):
 
 
         if self.pos + 1 >= len( self.p):
-            # no next
+            # reach the end of events, no next
             self.recognized = True
             self.terminated = True
             return
@@ -69,6 +70,8 @@ class Recognition(object):
 class TimePattern:
     def __init__(self, name, pattern):
         self.name = name
+#        if len(pattern)<2:
+#            raise Exception("time pattern must have at least 2 elements")
         self.pattern = pattern
 
 
@@ -95,7 +98,7 @@ class TimePatternRecognizer(object):
         for l in self.stack:
             l.consume(event)
 
-        # spawn necessary next Recognizer
+        # spawn necessary next Recognizer for the event
         (t,e) = event
 
         for i in filter( lambda x: x.pattern[0][1] == e, self.patterns):
@@ -107,5 +110,8 @@ class TimePatternRecognizer(object):
 
     def pop_matched_patterns(self):
         l = filter(lambda x: x.terminated and x.recognized, self.stack)
+        # remove terminated
         self.stack = list(filter(lambda x: not x.terminated, self.stack))
         return l
+
+    
