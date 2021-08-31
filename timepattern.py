@@ -92,6 +92,9 @@ class TimePatternRecognizer(object):
         assert timePattern.name is not None
         self.patterns.append(timePattern)
 
+    def reset(self):
+        self.stack = []
+
     def event_arrived(self, event):
      
         # for the existing stack, consume the elements
