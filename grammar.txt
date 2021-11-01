@@ -1,0 +1,25 @@
+
+Objective is to describe sequence of events, and permit to trigger something when some timed patterns are recognized
+
+Approch 1: convert the timed event with regular expression
+- convert additional states with event filtered -> this lead to create the derived state along the time, 
+
+the have a stack of time events, 
+
+applications :
+
+sequence of button recognition
+
+A - A - B
+
+regular expression :
+
+(A+)( +)(A+)( +)(B+)
+
+multiple events can occurs at the same time during a timelapse they are noted with sb
+
+[AB]       [A]  [A]          [B]
+
+regexp within a group: 
+
+
